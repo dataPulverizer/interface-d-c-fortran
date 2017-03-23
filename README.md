@@ -27,6 +27,11 @@ void main(){
 	writeln(x.map!(a => pow(a, 2.5)).array);
 }
 ```
+Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
+
+### Calling static C libraries from D
+
+Okay so I have a some code written in C. I would like to compile it and call it from D.
 
 
 ## The D code
