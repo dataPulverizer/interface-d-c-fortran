@@ -168,7 +168,7 @@ ldc2 -ofmult multd.d multf.o && ./mult
 ```
 Since the inputs are always passed by reference, you don't actually need to have an output, you can just modify one of the inputs.
 
-In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) interesting for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
+In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) useful for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
 
 ## The D code
 
