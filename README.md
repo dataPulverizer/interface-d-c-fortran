@@ -133,6 +133,43 @@ ldc2 -ofmult multd.d multc.o && ./mult
 
 The above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/DfromC).
 
+## Calling FORTRAN code from D
+
+Someone or a group of brave souls have created a high performance numeric library in FORTRAN and you would like to call this library from D. Calling Fortran from C is straightforward, but so is calling Fortran from D. Here is the Fortran version of my multiplication function:
+
+```
+SUBROUTINE MULT(x, y)
+IMPLICIT NONE
+REAL*8, INTENT(IN) :: x
+REAL*8, INTENT(INOUT) :: y
+y = x*y
+END SUBROUTINE MULT
+```
+The D code for calling Fortran is pretty much the same as calling C, however you will notice that the inputs are pointers and there is an underscore after the called function name:
+
+```
+import std.stdio : writeln;
+
+extern(C){
+	double mult_(double* x, double* y);
+}
+
+void main(){
+	double x = 4, y = 5;
+	writeln(mult_(&x, &y));
+}
+```
+
+Compilation is similar to calling C from D:
+
+```
+gfortran -c multf.f90
+ldc2 -ofmult multd.d multf.o && ./mult
+```
+Since the inputs are always passed by reference, you don't actually need to have an output, you can just modify one of the inputs.
+
+In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) interesting for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
+
 ## The D code
 
 In the same previous article, we created two simplified D functions for two BLAS routines `scal` (scaling an array by a constant) and `dot` (dot product of two arrays). Below is the code for the full implementation of the functions:
