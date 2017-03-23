@@ -2,20 +2,14 @@
 
 ## Introduction
 
-In a previous article I mentioned that D has full compatibility with C. In this article we decribe 
-how to interface D with C and Fortran. In reality, this is an interface to C and then from C to other
-languages.
+In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we decribe how to interface D with C and Fortran.
 
 ## The D code
 
-In the same previous article, we created two simplified D functions for two BLAS routines `scal` 
-(scaling an array by a constant) and `dot` (dot product of two arrays). Below is the code for
-the full implementation of the functions:
+In the same previous article, we created two simplified D functions for two BLAS routines `scal` (scaling an array by a constant) and `dot` (dot product of two arrays). Below is the code for the full implementation of the functions:
 
 ```
 module scal_dot;
-
-import std.stdio;
 
 T OFFSET(T)(in T N, in T incX)
 {
@@ -52,3 +46,4 @@ The function descriptions were removed for brevity, see our Github for full deta
 The `OFFSET` function allows `incY` and `incX` to be negative, the functions are modelled after 
 the [GNU Scientific Library](https://www.gnu.org/software/gsl/). Notice that pointers are used in the function declarations
 because C has no equivalent to the D dynamic array type.
+
