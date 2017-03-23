@@ -41,7 +41,7 @@ double mult(double x, double y)
 }
 ```
 
-I would like to compile it and call it from D so I write this function:
+I would like to compile it and call it from D, here is the code for this:
 
 ```
 /* multd.d*/
@@ -56,7 +56,7 @@ void main()
 	writeln(mult(3, 4));
 }
 ```
-I first compile the C and D scripts but not link, then I use the D compiler to compile both together:
+Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together:
 
 ```
 # To Compile:
