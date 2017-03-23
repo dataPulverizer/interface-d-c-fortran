@@ -96,7 +96,9 @@ As of writing this article, simply using `alias` will not work for exporting to 
 alias mult!double dmult;
 alias mult!float fmult;
 ```
-In D the `alias` instantiated `dmult` and `fmult` would function as intended, however these can not be exported correctly to C. The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
+In D the `alias` instantiated `dmult` and `fmult` would function as intended, in their current state they will not be instantiated by the D compiler unless they are used. See [this discussion](https://forum.dlang.org/thread/ehdfiatwevdrqejiqaen@forum.dlang.org) for more details.
+
+The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
 
 ```
 gcc -c multc.c
