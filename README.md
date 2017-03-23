@@ -31,7 +31,7 @@ Admit it, this is even easier than [calling C functions from Julia](http://docs.
 
 ### Calling static C libraries from D
 
-Okay so I have a some code written in C. Here is my snazzy multiplication function written in C:
+Here is my snazzy multiplication function written in C:
 
 ```
 /* multc.c */
