@@ -67,6 +67,38 @@ ldc2 multd.o multc.o && ./multd
 ```
 The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files.
 
+## Calling D functions from C
+
+Calling C from D is a less seamless affair because D has features that are not supported in C. Here is my templated multiplication function written in D:
+
+```
+extern (C) nothrow @nogc @system:
+pragma(LDC_no_moduleinfo);
+T mult(T)(T x, T y)
+{
+    return x*y;
+}
+double dmult(double x, double y)
+{
+	return mult(x, y);
+}
+
+float fmult(float x, float y)
+{
+	return mult(x, y);
+}
+```
+
+Notice that if I want to export it to C, I need create the concrete types I want. As of writing this article, simply using `alias` will not work for exporting to C:
+
+```
+/* ... */
+alias mult!double dmult;
+alias mult!float fmult;
+```
+In D the `alias` instantiated `dmult` and `fmult` would function as intended, however these can not be exported correctly to C. The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight.
+
+
 ## The D code
 
 In the same previous article, we created two simplified D functions for two BLAS routines `scal` (scaling an array by a constant) and `dot` (dot product of two arrays). Below is the code for the full implementation of the functions:
