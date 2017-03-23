@@ -6,7 +6,7 @@ In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/)
 
 ## Calling C functions from D.
 
-If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in. Just declare the function signature under `extern (C)`. Below we import the `fabs` and `pow` functions from the C `math.h` library.
+If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`. Below we import the `fabs` and `pow` functions from the C `math.h` library.
 
 ```
 import std.stdio: writeln;
@@ -56,7 +56,7 @@ void main()
 	writeln(mult(3, 4));
 }
 ```
-Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together:
+Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together and run:
 
 ```
 # To Compile:
@@ -89,14 +89,14 @@ float fmult(float x, float y)
 }
 ```
 
-As of writing this article, simply using `alias` will not work for exporting to C:
+As of writing this article, simply using `alias` will **not** work for exporting to C:
 
 ```
 /* ... */
 alias mult!double dmult;
 alias mult!float fmult;
 ```
-In D the `alias` instantiated `dmult` and `fmult` would function as intended, in their current state they will not be instantiated by the D compiler unless they are used. See [this discussion](https://forum.dlang.org/thread/ehdfiatwevdrqejiqaen@forum.dlang.org) for more details.
+The `alias` `dmult` and `fmult` will not exist in the object file for C. See [this discussion](https://forum.dlang.org/thread/ehdfiatwevdrqejiqaen@forum.dlang.org) for more details.
 
 The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
 
