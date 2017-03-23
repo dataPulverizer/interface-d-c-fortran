@@ -31,8 +31,41 @@ Admit it, this is even easier than [calling C functions from Julia](http://docs.
 
 ### Calling static C libraries from D
 
-Okay so I have a some code written in C. I would like to compile it and call it from D.
+Okay so I have a some code written in C. Here is my snazzy multiplication function written in C:
 
+```
+/* multc.c */
+double mult(double x, double y)
+{
+	return x*y;
+}
+```
+
+I would like to compile it and call it from D so I write this function:
+
+```
+/* multd.d*/
+import std.stdio: writeln;
+
+extern(C){
+	double mult(double x, double y);
+}
+
+void main()
+{
+	writeln(mult(3, 4));
+}
+```
+I first compile the C and D scripts but not link, then I use the D compiler to compile both together:
+
+```
+# To Compile:
+gcc -c multc.c
+ldc2 -c multd.d
+# Now run
+ldc2 multd.o multc.o && ./multd
+```
+The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files.
 
 ## The D code
 
