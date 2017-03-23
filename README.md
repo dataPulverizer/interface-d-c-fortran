@@ -69,7 +69,7 @@ The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran
 
 ## Calling D functions from C
 
-Calling C from D is a less seamless affair because D has features that are not supported in C. Here is my templated multiplication function written in D:
+Calling C from D is a less seamless affair because D has features that are not supported in C. Below is my templated multiplication function written in D. If I want to export it to C, I need create concrete types:
 
 ```
 extern (C) nothrow @nogc @system:
@@ -89,15 +89,22 @@ float fmult(float x, float y)
 }
 ```
 
-Notice that if I want to export it to C, I need create the concrete types I want. As of writing this article, simply using `alias` will not work for exporting to C:
+As of writing this article, simply using `alias` will not work for exporting to C:
 
 ```
 /* ... */
 alias mult!double dmult;
 alias mult!float fmult;
 ```
-In D the `alias` instantiated `dmult` and `fmult` would function as intended, however these can not be exported correctly to C. The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight.
+In D the `alias` instantiated `dmult` and `fmult` would function as intended, however these can not be exported correctly to C. The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
 
+```
+gcc -c multc.c
+ldc2 -c multd.d
+gcc -omult multd.o multc.o && ./mult
+```
+
+The `LDC_no_moduleinfo` directive this will only work for the LDC compiler.
 
 ## The D code
 
