@@ -106,7 +106,7 @@ ldc2 -c multd.d
 gcc -omult multd.o multc.o && ./mult
 ```
 
-The `LDC_no_moduleinfo` directive this will only work for the LDC compiler. So alternatively, you can do the first stage of the C compilation and the second and final stage using any D compiler instead of the `gcc` compiler without the pragma directive. Meaning that the D code becomes
+The `LDC_no_moduleinfo` directive this will only work for the LDC compiler. Here is the code omitting that directive:
 
 ```
 extern (C) nothrow @nogc @system:
@@ -124,7 +124,7 @@ float fmult(float x, float y)
 	return mult(x, y);
 }
 ```
-and you compile with this:
+Then the compilation:
 
 ```
 gcc -c multc.c
@@ -166,7 +166,7 @@ Compilation is similar to calling C from D:
 gfortran -c multf.f90
 ldc2 -ofmult multd.d multf.o && ./mult
 ```
-Since the inputs are always passed by reference, you don't actually need to have an output, you can just modify one of the inputs.
+Since the inputs are always passed by reference, you don't actually need to have an output, you can just modify one of the inputs. The above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/Fortran2D).
 
 In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) useful for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
 
