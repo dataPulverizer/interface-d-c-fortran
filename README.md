@@ -104,7 +104,7 @@ ldc2 -c multd.d
 gcc -omult multd.o multc.o && ./mult
 ```
 
-The `LDC_no_moduleinfo` directive this will only work for the LDC compiler. So alternatively, you can do the first stage of the C compilation and the last and final stage using any D compiler instead of the `gcc` compiler without the pragma directive. Meaning that the D code becomes
+The `LDC_no_moduleinfo` directive this will only work for the LDC compiler. So alternatively, you can do the first stage of the C compilation and the second and final stage using any D compiler instead of the `gcc` compiler without the pragma directive. Meaning that the D code becomes
 
 ```
 extern (C) nothrow @nogc @system:
@@ -128,6 +128,8 @@ and you compile with this:
 gcc -c multc.c
 ldc2 -ofmult multd.d multc.o && ./mult
 ```
+
+The above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/DfromC).
 
 ## The D code
 
