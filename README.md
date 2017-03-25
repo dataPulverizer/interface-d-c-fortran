@@ -80,7 +80,7 @@ T mult(T)(T x, T y)
 }
 double dmult(double x, double y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 
 float fmult(float x, float y)
