@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we decribe how to interface D with C and Fortran.
+In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we describe how to interface D with C and Fortran, and we throw in a brief introduction to string mixins.
 
 ## Calling C functions from D.
 
@@ -85,7 +85,7 @@ double dmult(double x, double y)
 
 float fmult(float x, float y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 ```
 
@@ -116,12 +116,12 @@ T mult(T)(T x, T y)
 }
 double dmult(double x, double y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 
 float fmult(float x, float y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 ```
 Then the compilation:
@@ -151,12 +151,12 @@ The D code for calling Fortran is pretty much the same as calling C, however you
 import std.stdio : writeln;
 
 extern(C){
-	double mult_(double* x, double* y);
+    double mult_(double* x, double* y);
 }
 
 void main(){
-	double x = 4, y = 5;
-	writeln(mult_(&x, &y));
+    double x = 4, y = 5;
+    writeln(mult_(&x, &y));
 }
 ```
 
@@ -213,7 +213,7 @@ and over again so here is a template to generate a string:
 ```
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 ```
 
@@ -236,10 +236,10 @@ to generate the code we need:
 
 ```
 extern(C){
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
+    mixin(Declare!"sin");
+    mixin(Declare!"cos");
+    mixin(Declare!"tan");
+    mixin(Declare!"atan");
 }
 ```
 
@@ -250,7 +250,7 @@ function for this:
 ```
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 ```
 
@@ -276,19 +276,19 @@ import std.stdio : writeln;
 
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 
 extern(C){
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
+    mixin(Declare!"sin");
+    mixin(Declare!"cos");
+    mixin(Declare!"tan");
+    mixin(Declare!"atan");
 }
 
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 
 
@@ -299,12 +299,12 @@ mixin(Wrap!"atan");
 
 
 void main(){
-	double pii = 1;
+    double pii = 1;
     immutable double pi = 4*atan(pii);
     assert(sin(pi/2) == 1);
-	assert(cos(0) == 1);
-	assert(tan(0) == 0);
-	writeln("Yay!");
+    assert(cos(0) == 1);
+    assert(tan(0) == 0);
+    writeln("Yay!");
 }
 ```
 
@@ -327,4 +327,8 @@ clean :
 Then run with `make`.
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/trig).
+
+## Conclusion
+
+The C programming language is sometimes called the lingua franca of the programming world and any C library can be called from D. We have shown that D can call not only C libraries but also Fortran subroutines. We also introduced string mixins for code generation, and showed that this is straightforward to use these to generate code.
 
