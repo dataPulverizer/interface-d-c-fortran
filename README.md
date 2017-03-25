@@ -21,10 +21,10 @@ extern (C){
 
 /* To Compile: ldc2 calling_c.d && ./calling_c */
 void main(){
-	double[] x = [-1, 2, -3, 4, -5 , 6];
-	x = x.map!(a => fabs(a)).array;
-	writeln(x);
-	writeln(x.map!(a => pow(a, 2.5)).array);
+    double[] x = [-1, 2, -3, 4, -5 , 6];
+    x = x.map!(a => fabs(a)).array;
+    writeln(x);
+    writeln(x.map!(a => pow(a, 2.5)).array);
 }
 ```
 Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
@@ -37,7 +37,7 @@ Here is my snazzy multiplication function written in C:
 /* multc.c */
 double mult(double x, double y)
 {
-	return x*y;
+    return x*y;
 }
 ```
 
@@ -48,12 +48,12 @@ I would like to compile it and call it from D, here is the code for this:
 import std.stdio: writeln;
 
 extern(C){
-	double mult(double x, double y);
+    double mult(double x, double y);
 }
 
 void main()
 {
-	writeln(mult(3, 4));
+    writeln(mult(3, 4));
 }
 ```
 Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together and run:
