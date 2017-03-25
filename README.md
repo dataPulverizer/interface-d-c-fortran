@@ -170,6 +170,165 @@ Since the inputs are always passed by reference, you don't actually need to have
 
 In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) useful for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
 
+## Calling D code from Fortran with `mixin` magic
+
+In my [previous](http://www.active-analytics.com/blog/a-quick-look-at-d/) blog article we touched on templates in D. In D not only
+are templates powerful but they are so much more straight forward than in C++. In this section we will use a string mixin
+to generate wrapper code from Fortran. In D a string mixin allows you to generate code from strings, they are easy to use and very
+powerful. The only real requirement is that the string needs to be known at compile time.
+
+We would like to port some trigonometric function from Fortran to D, so as before we create subroutines for sine, cosine, tangent,
+and arctangent functions:
+
+```
+SUBROUTINE SIN(x)
+IMPLICIT NONE
+REAL*8, INTENT(INOUT) :: x
+x = DSIN(x)
+END SUBROUTINE SIN
+
+SUBROUTINE COS(x)
+IMPLICIT NONE
+REAL*8, INTENT(INOUT) :: x
+x = DCOS(x)
+END SUBROUTINE COS
+
+SUBROUTINE TAN(x)
+IMPLICIT NONE
+REAL*8, INTENT(INOUT) :: x
+x = DTAN(x)
+END SUBROUTINE TAN
+
+SUBROUTINE ATAN(x)
+IMPLICIT NONE
+REAL*8, INTENT(INOUT) :: x
+x = DATAN(x)
+END SUBROUTINE ATAN
+```
+
+We can port these to D using `extern (C)` as before, however we don't really want to write out the same code over 
+and over again so here is a template to generate a string:
+
+
+```
+template Declare(string fun)
+{
+	enum string Declare = "double " ~ fun ~ "_(double* x);";
+}
+```
+
+Note that the `~` operator is for concatenating in D.
+
+Then this, when appropriately compiled:
+
+```
+writeln(Declare!"cos");
+```
+
+gives:
+
+```
+double cos_(double* x);
+```
+
+The string representation that we need to import the Fortran function. We can use the `mixin` function
+to generate the code we need:
+
+```
+extern(C){
+	mixin(Declare!"sin");
+	mixin(Declare!"cos");
+	mixin(Declare!"tan");
+	mixin(Declare!"atan");
+}
+```
+
+I would like to clean up the functions before use, perhaps have input as `double` rather than `double*`
+and remove the trailing underscore in the name using a wrapper function. So I create another template
+function for this:
+
+```
+template Wrap(string fun)
+{
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+}
+```
+
+Appropriately compiling with this:
+
+```
+writeln(Wrap!"cos");
+```
+
+Gives
+
+```
+double cos(double x)
+{
+    return cos_(&x);
+}
+```
+
+The complete declaration is:
+
+```
+import std.stdio : writeln;
+
+template Declare(string fun)
+{
+	enum string Declare = "double " ~ fun ~ "_(double* x);";
+}
+
+extern(C){
+	mixin(Declare!"sin");
+	mixin(Declare!"cos");
+	mixin(Declare!"tan");
+	mixin(Declare!"atan");
+}
+
+template Wrap(string fun)
+{
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+}
+
+
+mixin(Wrap!"sin");
+mixin(Wrap!"cos");
+mixin(Wrap!"tan");
+mixin(Wrap!"atan");
+
+
+void main(){
+	double pii = 1;
+    immutable double pi = 4*atan(pii);
+    assert(sin(pi/2) == 1);
+	assert(cos(0) == 1);
+	assert(tan(0) == 0);
+	writeln("Yay!");
+}
+```
+
+It doesn't take too much imagination to realise that you can use D code to generate the Fortran string, compile it and generate
+the relevant D wrapper code. Yes it is possible to do this in C/C++ using nasty macros or maybe template programming (I wouln't
+like to try), but hopefully you can see that this kind of thing is pretty straightforward in D, because it was designed with
+meta-progamming in mind. We can compile the Fortran and D code with make though D has it's own package manager called 
+[DUB](https://code.dlang.org/getting_started). The make code is below:
+
+```
+trig : trigd.d trigf.o
+	ldc2 -oftrig trigd.d trigf.o
+trigf.o : trigf.f90
+	gfortran -c trigf.f90
+.PHONY : clean
+clean :
+	rm *.o
+```
+
+Then run with `make`.
+
+The code for this section is given [here]().
+
+
 ## The D code
 
 In the same previous article, we created two simplified D functions for two BLAS routines `scal` (scaling an array by a constant) and `dot` (dot product of two arrays). Below is the code for the full implementation of the functions:
