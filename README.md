@@ -65,7 +65,7 @@ ldc2 -c multd.d
 # Now run
 ldc2 multd.o multc.o && ./multd
 ```
-The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details, see the [D language website](https://dlang.org/dll-linux.html).
+The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details of calling C from D, see the [D language website](https://dlang.org/dll-linux.html).
 
 ## Calling D functions from C
 
