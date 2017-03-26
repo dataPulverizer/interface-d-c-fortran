@@ -2,94 +2,29 @@
 
 ## Introduction
 
-In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we describe how to interface D with C and Fortran, and we throw in a brief introduction to string mixins.
+In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we decribe how to interface D with C and Fortran.
 
 ## Calling C functions from D.
 
 If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`. Below we import the `fabs` and `pow` functions from the C `math.h` library.
 
 ```
-/+ dub.json: {
-    "name":"example1",
-    "dependencies": {"mir-algorithm":"~>0.1.1"},
-    "dflags": ["-betterC", "-linkonce-templates",  "-enable-cross-module-inlining", "-mcpu=native"]
-}+/
-import mir.ndslice.slice: sliced;
-import mir.ndslice.topology: map;
-import mir.ndslice.algorithm: each;
+import std.stdio: writeln;
+import std.algorithm.iteration: sum, map;
+import std.array: array;
 
 /* Importing C functions into D */
-
-
-extern(C) int printf(scope const char* format, ...) nothrow @nogc;
-// alternative:
-// import core.stdc.stdio: printf;
-
-version(none2)
-{
-    // LLVM allows to inline fabs, sqrt and some other functions.
-    import ldc.intrinsics: fabs = llvm_fabs, sqrt = llvm_sqrt;
-}
-else extern(C) nothrow @nogc // common way
-{
-    // In addition to `nothrow @nogc`,
-    // fabs and sqrt functions are `pure @safe`
-    double sqrt(double x) pure @safe;
-    double fabs(double x) pure @safe;
+extern (C){
+    double pow(double x, double y);
+    double fabs(double x);
 }
 
-void printArray(S)(S slice)
-{
-    slice.each!(a => printf("%f ", a));
-    printf("\n");
-}
-
-/* To Compile and Run:
-$ dub --compiler=ldc2 --build=release --single example1.d
-or, if mir-algorithm and mir-internal are in the same folder
-
- 1. for object file output
-$ ldc2 -Imir-algorithm/source -Imir-internal/source -betterC -O -release -linkonce-templates -enable-cross-module-inlining -mcpu=native -c example1.d
-$ nm example1.o
-0000000000000120 s _.arrayliteral
-0000000000000100 T __D3mir7ndslice5slice18__T6slicedVmi1TAdZ6slicedFNaNbNiAdG1mXS3mir7ndslice5slice52__T5SliceVE3mir7ndslice5slice9SliceKindi2VAmA1i1TPdZ5Slice
-0000000000000000 T _main
-                 U _printf
-                 U _putchar
-ls -lh example1.o
--rw-r--r--  1 9il  staff   1.4K Mar 27 02:35 example1.o
-// Size of the object file is realy tiny! Only 1.4K
-
- 2. for assembler output
-$ ldc2 -Imir-algorithm/source -Imir-internal/source -betterC -O -release -linkonce-templates -enable-cross-module-inlining -mcpu=native -c -output-s example1.d
-cat example1.s
- ... second line / loop
-LBB0_5:
-    vmovsd  (%r12), %xmm0
-    vandpd  LCPI0_0(%rip), %xmm0, %xmm0 # fabs
-    vsqrtsd %xmm0, %xmm0, %xmm0         # sqrt
-    movb    $1, %al
-    movq    %r14, %rdi
-    callq   _printf                     # printf("%f ", a)
-    addq    $8, %r12
-    addq    $-1, %r15
-    jne LBB0_5
-    jmp LBB0_6
-LBB0_1:
-    movl    $10, %edi
-    callq   _putchar                    # printf("\n");
- ...
-*/
-extern(C) int main()
-{
-    double[6] data = [-1, 2, -3, 4, -5 , 6];
-    auto x = data[].sliced;
-    auto absx = x.map!fabs; // lazy view
-    absx.printArray;
-    absx
-        .map!sqrt // lazy view
-        .printArray;
-    return 0;
+/* To Compile: ldc2 calling_c.d && ./calling_c */
+void main(){
+	double[] x = [-1, 2, -3, 4, -5 , 6];
+	x = x.map!(a => fabs(a)).array;
+	writeln(x);
+	writeln(x.map!(a => pow(a, 2.5)).array);
 }
 ```
 Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
@@ -102,7 +37,7 @@ Here is my snazzy multiplication function written in C:
 /* multc.c */
 double mult(double x, double y)
 {
-    return x*y;
+	return x*y;
 }
 ```
 
@@ -113,12 +48,12 @@ I would like to compile it and call it from D, here is the code for this:
 import std.stdio: writeln;
 
 extern(C){
-    double mult(double x, double y);
+	double mult(double x, double y);
 }
 
 void main()
 {
-    writeln(mult(3, 4));
+	writeln(mult(3, 4));
 }
 ```
 Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together and run:
@@ -130,7 +65,7 @@ ldc2 -c multd.d
 # Now run
 ldc2 multd.o multc.o && ./multd
 ```
-The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details of calling C from D, see the [D language website](https://dlang.org/dll-linux.html).
+The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details, see the [D langugae website](https://dlang.org/dll-linux.html).
 
 ## Calling D functions from C
 
@@ -145,12 +80,12 @@ T mult(T)(T x, T y)
 }
 double dmult(double x, double y)
 {
-    return mult(x, y);
+	return mult(x, y);
 }
 
 float fmult(float x, float y)
 {
-    return mult(x, y);
+	return mult(x, y);
 }
 ```
 
@@ -181,12 +116,12 @@ T mult(T)(T x, T y)
 }
 double dmult(double x, double y)
 {
-    return mult(x, y);
+	return mult(x, y);
 }
 
 float fmult(float x, float y)
 {
-    return mult(x, y);
+	return mult(x, y);
 }
 ```
 Then the compilation:
@@ -216,12 +151,12 @@ The D code for calling Fortran is pretty much the same as calling C, however you
 import std.stdio : writeln;
 
 extern(C){
-    double mult_(double* x, double* y);
+	double mult_(double* x, double* y);
 }
 
 void main(){
-    double x = 4, y = 5;
-    writeln(mult_(&x, &y));
+	double x = 4, y = 5;
+	writeln(mult_(&x, &y));
 }
 ```
 
@@ -278,7 +213,7 @@ and over again so here is a template to generate a string:
 ```
 template Declare(string fun)
 {
-    enum string Declare = "double " ~ fun ~ "_(double* x);";
+	enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 ```
 
@@ -301,10 +236,10 @@ to generate the code we need:
 
 ```
 extern(C){
-    mixin(Declare!"sin");
-    mixin(Declare!"cos");
-    mixin(Declare!"tan");
-    mixin(Declare!"atan");
+	mixin(Declare!"sin");
+	mixin(Declare!"cos");
+	mixin(Declare!"tan");
+	mixin(Declare!"atan");
 }
 ```
 
@@ -315,7 +250,7 @@ function for this:
 ```
 template Wrap(string fun)
 {
-    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 ```
 
@@ -341,19 +276,19 @@ import std.stdio : writeln;
 
 template Declare(string fun)
 {
-    enum string Declare = "double " ~ fun ~ "_(double* x);";
+	enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 
 extern(C){
-    mixin(Declare!"sin");
-    mixin(Declare!"cos");
-    mixin(Declare!"tan");
-    mixin(Declare!"atan");
+	mixin(Declare!"sin");
+	mixin(Declare!"cos");
+	mixin(Declare!"tan");
+	mixin(Declare!"atan");
 }
 
 template Wrap(string fun)
 {
-    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 
 
@@ -364,12 +299,12 @@ mixin(Wrap!"atan");
 
 
 void main(){
-    double pii = 1;
+	double pii = 1;
     immutable double pi = 4*atan(pii);
     assert(sin(pi/2) == 1);
-    assert(cos(0) == 1);
-    assert(tan(0) == 0);
-    writeln("Yay!");
+	assert(cos(0) == 1);
+	assert(tan(0) == 0);
+	writeln("Yay!");
 }
 ```
 
@@ -392,8 +327,3 @@ clean :
 Then run with `make`.
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/trig).
-
-## Conclusion
-
-The C programming language is sometimes called the lingua franca of the programming world and any C library can be called from D. We have shown that D can call not only C libraries but also Fortran subroutines. We also introduced string mixins for code generation, and showed that this is straightforward to use these to generate code.
-
