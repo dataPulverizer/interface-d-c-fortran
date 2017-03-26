@@ -9,22 +9,87 @@ In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/)
 If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`. Below we import the `fabs` and `pow` functions from the C `math.h` library.
 
 ```
-import std.stdio: writeln;
-import std.algorithm.iteration: sum, map;
-import std.array: array;
+/+ dub.json: {
+    "name":"example1",
+    "dependencies": {"mir-algorithm":"~>0.1.1"},
+    "dflags": ["-betterC", "-linkonce-templates",  "-enable-cross-module-inlining", "-mcpu=native"]
+}+/
+import mir.ndslice.slice: sliced;
+import mir.ndslice.topology: map;
+import mir.ndslice.algorithm: each;
 
 /* Importing C functions into D */
-extern (C){
-    double pow(double x, double y);
-    double fabs(double x);
+
+
+extern(C) int printf(scope const char* format, ...) nothrow @nogc;
+// alternative:
+// import core.stdc.stdio: printf;
+
+version(none2)
+{
+    // LLVM allows to inline fabs, sqrt and some other functions.
+    import ldc.intrinsics: fabs = llvm_fabs, sqrt = llvm_sqrt;
+}
+else extern(C) nothrow @nogc // common way
+{
+    // In addition to `nothrow @nogc`,
+    // fabs and sqrt functions are `pure @safe`
+    double sqrt(double x) pure @safe;
+    double fabs(double x) pure @safe;
 }
 
-/* To Compile: ldc2 calling_c.d && ./calling_c */
-void main(){
-    double[] x = [-1, 2, -3, 4, -5 , 6];
-    x = x.map!(a => fabs(a)).array;
-    writeln(x);
-    writeln(x.map!(a => pow(a, 2.5)).array);
+void printArray(S)(S slice)
+{
+    slice.each!(a => printf("%f ", a));
+    printf("\n");
+}
+
+/* To Compile and Run:
+$ dub --compiler=ldc2 --build=release --single example1.d
+or, if mir-algorithm and mir-internal are in the same folder
+
+ 1. for object file output
+$ ldc2 -Imir-algorithm/source -Imir-internal/source -betterC -O -release -linkonce-templates -enable-cross-module-inlining -mcpu=native -c example1.d
+$ nm example1.o
+0000000000000120 s _.arrayliteral
+0000000000000100 T __D3mir7ndslice5slice18__T6slicedVmi1TAdZ6slicedFNaNbNiAdG1mXS3mir7ndslice5slice52__T5SliceVE3mir7ndslice5slice9SliceKindi2VAmA1i1TPdZ5Slice
+0000000000000000 T _main
+                 U _printf
+                 U _putchar
+ls -lh example1.o
+-rw-r--r--  1 9il  staff   1.4K Mar 27 02:35 example1.o
+// Size of the object file is realy tiny! Only 1.4K
+
+ 2. for assembler output
+$ ldc2 -Imir-algorithm/source -Imir-internal/source -betterC -O -release -linkonce-templates -enable-cross-module-inlining -mcpu=native -c -output-s example1.d
+cat example1.s
+ ... second line / loop
+LBB0_5:
+    vmovsd  (%r12), %xmm0
+    vandpd  LCPI0_0(%rip), %xmm0, %xmm0 # fabs
+    vsqrtsd %xmm0, %xmm0, %xmm0         # sqrt
+    movb    $1, %al
+    movq    %r14, %rdi
+    callq   _printf                     # printf("%f ", a)
+    addq    $8, %r12
+    addq    $-1, %r15
+    jne LBB0_5
+    jmp LBB0_6
+LBB0_1:
+    movl    $10, %edi
+    callq   _putchar                    # printf("\n");
+ ...
+*/
+extern(C) int main()
+{
+    double[6] data = [-1, 2, -3, 4, -5 , 6];
+    auto x = data[].sliced;
+    auto absx = x.map!fabs; // lazy view
+    absx.printArray;
+    absx
+        .map!sqrt // lazy view
+        .printArray;
+    return 0;
 }
 ```
 Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
