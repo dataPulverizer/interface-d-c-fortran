@@ -12,7 +12,7 @@ Below is code for importing the `fabs` and `pow` functions from the C `math.h` l
 function for printing out an array. The main program uses the`fabs` function on each element of an array and the `pow` function to raise the power of each element to `2.5`:
 
 ```
-/* Importing C functions into D */
+/* Import C functions */
 extern (C) @nogc nothrow
 {
     double pow(double x, double y) pure @safe;
@@ -20,7 +20,6 @@ extern (C) @nogc nothrow
     int printf(scope const char* format, ...);
 }
 
-/* Function to print */
 void printArray(X: U[], U)(X arr)
 {
     foreach(el; arr)

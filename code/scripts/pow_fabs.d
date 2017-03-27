@@ -5,7 +5,6 @@ extern (C) @nogc nothrow
     int printf(scope const char* format, ...);
 }
 
-/* Function to print */
 void printArray(X: U[], U)(X arr)
 {
     foreach(el; arr)
