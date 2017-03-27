@@ -1,4 +1,4 @@
-extern (C) nothrow @nogc @system:
+extern (C) nothrow @nogc:
 pragma(LDC_no_moduleinfo);
 T mult(T)(T x, T y)
 {

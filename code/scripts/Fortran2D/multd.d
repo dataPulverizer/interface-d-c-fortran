@@ -1,7 +1,7 @@
-import std.stdio : writeln;
-
-extern(C){
-	double mult_(double* x, double* y);
+extern (C) nothrow @nogc
+{
+    double mult_(double* x, double* y);
+    int printf(scope const char* format, ...);
 }
 
 /* To Compile:
@@ -11,5 +11,5 @@ extern(C){
 
 void main(){
 	double x = 4, y = 5;
-	writeln(mult_(&x, &y));
+	printf("%f\n", mult_(&x, &y));
 }

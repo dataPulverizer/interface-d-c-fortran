@@ -1,16 +1,15 @@
-import std.stdio: writeln;
-
-extern(C){
+extern(C) @nogc nothrow
+{
 	double mult(double x, double y);
+	int printf(scope const char* format, ...);
 }
 
 /* To Compile:
 ** gcc -c multc.c
-** ldc2 -c multd.d
-** ldc2 multd.o multc.o && ./multd
+** ldc2 multd.d multc.o && ./multd
 */
 
 void main()
 {
-	writeln(mult(3, 4));
+	printf("%f\n", mult(3, 4));
 }

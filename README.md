@@ -6,27 +6,46 @@ In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/)
 
 ## Calling C functions from D.
 
-If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`. Below we import the `fabs` and `pow` functions from the C `math.h` library.
+If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`.
+
+Below is code for importing the `fabs` and `pow` functions from the C `math.h` library, we have added `@nogc` and `nothrow` because C does not have garbage collection nor does it throw exceptions. We have also included C's `printf` function and used it to construct a simple template
+function for printing out an array. The main program uses the`fabs` function on each element of an array and the `pow` function to raise the power of each element to `2.5`:
 
 ```
-import std.stdio: writeln;
-import std.algorithm.iteration: sum, map;
-import std.array: array;
-
 /* Importing C functions into D */
-extern (C){
-    double pow(double x, double y);
+extern (C) @nogc nothrow
+{
+    double pow(double x, double y) pure @safe;
     double fabs(double x);
+    int printf(scope const char* format, ...);
+}
+
+/* Function to print */
+void printArray(X: U[], U)(X arr)
+{
+    foreach(el; arr)
+    {
+        printf("%f ", el);
+    }
+    printf("\n");
 }
 
 /* To Compile: ldc2 calling_c.d && ./calling_c */
 void main(){
-	double[] x = [-1, 2, -3, 4, -5 , 6];
-	x = x.map!(a => fabs(a)).array;
-	writeln(x);
-	writeln(x.map!(a => pow(a, 2.5)).array);
+    double[] x = [-1, 2, -3, 4, -5 , 6];
+    foreach(i, el; x)
+    {
+        x[i] = fabs(el);
+    }
+    printArray(x);
+    foreach(i, el; x)
+    {
+        x[i] = pow(el, 2.5);
+    }
+    printArray(x);
 }
 ```
+
 Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
 
 ### Calling static C libraries from D
@@ -37,7 +56,7 @@ Here is my snazzy multiplication function written in C:
 /* multc.c */
 double mult(double x, double y)
 {
-	return x*y;
+    return x*y;
 }
 ```
 
@@ -45,26 +64,26 @@ I would like to compile it and call it from D, here is the code for this:
 
 ```
 /* multd.d*/
-import std.stdio: writeln;
-
-extern(C){
+extern(C) @nogc nothrow
+{
 	double mult(double x, double y);
+	int printf(scope const char* format, ...);
 }
 
 void main()
 {
-	writeln(mult(3, 4));
+	printf("%f\n", mult(3, 4));
 }
 ```
+
 Evidently you simply need to register the function using the `extern (C)` directive and list functions. Then it's all a matter of compiler magic. I first compile the C and D scripts but not link, then I use the D compiler to compile both together and run:
 
 ```
 # To Compile:
 gcc -c multc.c
-ldc2 -c multd.d
-# Now run
-ldc2 multd.o multc.o && ./multd
+ldc2 multd.d multc.o && ./multd
 ```
+
 The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details, see the [D langugae website](https://dlang.org/dll-linux.html).
 
 ## Calling D functions from C
@@ -80,12 +99,12 @@ T mult(T)(T x, T y)
 }
 double dmult(double x, double y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 
 float fmult(float x, float y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 ```
 
@@ -98,7 +117,7 @@ alias mult!float fmult;
 ```
 The alias `dmult` and `fmult` will not exist in the object file for C. See [this discussion](https://forum.dlang.org/thread/ehdfiatwevdrqejiqaen@forum.dlang.org) for more details.
 
-The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from "leaking out". [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
+The [`pragma(LDC_no_moduleinfo);`](https://wiki.dlang.org/LDC-specific_language_changes#LDC_no_moduleinfo) stops incompatible features in D from being included. [This discussion](https://forum.dlang.org/thread/bvjfgvgtitrvxpqoatar@forum.dlang.org) was the source for that insight. To compile:
 
 ```
 gcc -c multc.c
@@ -109,19 +128,19 @@ gcc -omult multd.o multc.o && ./mult
 The `LDC_no_moduleinfo` directive this will only work for the LDC compiler. Here is the code omitting that directive:
 
 ```
-extern (C) nothrow @nogc @system:
+extern (C) nothrow @nogc:
 T mult(T)(T x, T y)
 {
     return x*y;
 }
 double dmult(double x, double y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 
 float fmult(float x, float y)
 {
-	return mult(x, y);
+    return mult(x, y);
 }
 ```
 Then the compilation:
@@ -148,16 +167,17 @@ END SUBROUTINE MULT
 The D code for calling Fortran is pretty much the same as calling C, however you will notice that the inputs are pointers and there is an underscore after the called function name:
 
 ```
-import std.stdio : writeln;
-
-extern(C){
-	double mult_(double* x, double* y);
+extern (C) nothrow @nogc
+{
+    double mult_(double* x, double* y);
+    int printf(scope const char* format, ...);
 }
 
 void main(){
 	double x = 4, y = 5;
-	writeln(mult_(&x, &y));
+	printf("%f\n", mult_(&x, &y));
 }
+
 ```
 
 Compilation is similar to calling C from D:
@@ -213,7 +233,7 @@ and over again so here is a template to generate a string:
 ```
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 ```
 
@@ -235,11 +255,12 @@ The string representation that we need to import the Fortran function. We can us
 to generate the code we need:
 
 ```
-extern(C){
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
+extern(C) nothrow @nogc
+{
+    mixin(Declare!"sin");
+    mixin(Declare!"cos");
+    mixin(Declare!"tan");
+    mixin(Declare!"atan");
 }
 ```
 
@@ -250,7 +271,7 @@ function for this:
 ```
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 ```
 
@@ -272,14 +293,14 @@ double cos(double x)
 The complete declaration is:
 
 ```
-import std.stdio : writeln;
-
 template Declare(string fun)
 {
 	enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 
-extern(C){
+extern(C) nothrow @nogc
+{
+	int printf(scope const char* format, ...);
 	mixin(Declare!"sin");
 	mixin(Declare!"cos");
 	mixin(Declare!"tan");
@@ -297,14 +318,13 @@ mixin(Wrap!"cos");
 mixin(Wrap!"tan");
 mixin(Wrap!"atan");
 
-
 void main(){
 	double pii = 1;
     immutable double pi = 4*atan(pii);
     assert(sin(pi/2) == 1);
 	assert(cos(0) == 1);
 	assert(tan(0) == 0);
-	writeln("Yay!");
+	printf("Yay!\n");
 }
 ```
 

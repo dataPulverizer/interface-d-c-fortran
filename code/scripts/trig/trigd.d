@@ -1,11 +1,11 @@
-import std.stdio : writeln;
-
 template Declare(string fun)
 {
 	enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 
-extern(C){
+extern(C) nothrow @nogc
+{
+	int printf(scope const char* format, ...);
 	mixin(Declare!"sin");
 	mixin(Declare!"cos");
 	mixin(Declare!"tan");
@@ -34,5 +34,5 @@ void main(){
     assert(sin(pi/2) == 1);
 	assert(cos(0) == 1);
 	assert(tan(0) == 0);
-	writeln("Yay!");
+	printf("Yay!\n");
 }
