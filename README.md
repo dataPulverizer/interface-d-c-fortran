@@ -65,13 +65,13 @@ I would like to compile it and call it from D, here is the code for this:
 /* multd.d*/
 extern(C) @nogc nothrow
 {
-	double mult(double x, double y);
-	int printf(scope const char* format, ...);
+    double mult(double x, double y);
+    int printf(scope const char* format, ...);
 }
 
 void main()
 {
-	printf("%f\n", mult(3, 4));
+    printf("%f\n", mult(3, 4));
 }
 ```
 
@@ -173,8 +173,8 @@ extern (C) nothrow @nogc
 }
 
 void main(){
-	double x = 4, y = 5;
-	printf("%f\n", mult_(&x, &y));
+    double x = 4, y = 5;
+    printf("%f\n", mult_(&x, &y));
 }
 
 ```
@@ -294,21 +294,21 @@ The complete declaration is:
 ```
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(double* x);";
 }
 
 extern(C) nothrow @nogc
 {
-	int printf(scope const char* format, ...);
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
+    int printf(scope const char* format, ...);
+    mixin(Declare!"sin");
+    mixin(Declare!"cos");
+    mixin(Declare!"tan");
+    mixin(Declare!"atan");
 }
 
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
 }
 
 
@@ -318,12 +318,12 @@ mixin(Wrap!"tan");
 mixin(Wrap!"atan");
 
 void main(){
-	double pii = 1;
+    double pii = 1;
     immutable double pi = 4*atan(pii);
     assert(sin(pi/2) == 1);
-	assert(cos(0) == 1);
-	assert(tan(0) == 0);
-	printf("Yay!\n");
+    assert(cos(0) == 1);
+    assert(tan(0) == 0);
+    printf("Yay!\n");
 }
 ```
 
@@ -335,12 +335,12 @@ meta-progamming in mind. We can compile the Fortran and D code with make though 
 
 ```
 trig : trigd.d trigf.o
-	ldc2 -oftrig trigd.d trigf.o
+    ldc2 -oftrig trigd.d trigf.o
 trigf.o : trigf.f90
-	gfortran -c trigf.f90
+    gfortran -c trigf.f90
 .PHONY : clean
 clean :
-	rm *.o
+    rm *.o
 ```
 
 Then run with `make`.
