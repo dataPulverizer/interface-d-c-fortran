@@ -1,6 +1,6 @@
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(double* x);";
+	enum string Declare = "double " ~ fun ~ "_(ref double x);";
 }
 
 extern(C) nothrow @nogc
@@ -14,7 +14,7 @@ extern(C) nothrow @nogc
 
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 
 

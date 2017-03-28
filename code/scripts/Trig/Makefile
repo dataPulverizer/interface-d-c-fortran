@@ -4,4 +4,4 @@ trigf.o : trigf.f90
 	gfortran -c trigf.f90
 .PHONY : clean
 clean :
-	rm *.o
+	rm trig *.o

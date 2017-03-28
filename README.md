@@ -2,14 +2,13 @@
 
 ## Introduction
 
-In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that D has full compatibility with C. In this article we decribe how to interface D with C and Fortran.
+In a [previous article](http://www.active-analytics.com/blog/a-quick-look-at-d/) I mentioned that C has full compatibility with D. In this article we decribe how to interface D with C and Fortran.
 
 ## Calling C functions from D.
 
-If you are on Linux, you will have C libraries installed these functions can be called from D with ease - actually easier than calling them from C or C++, you don't even need to explicitly import the C library that the function sits in, just declare the function signature under `extern (C)`.
+If you use a Linux system, certain C libraries will installed. These functions can be called from D with ease - actually easier than calling them from C or C++. You do not need to explicitly import the C library where function sits, just declare the function signature under `extern (C)`.
 
-Below is code for importing the `fabs` and `pow` functions from the C `math.h` library, we have added `@nogc` and `nothrow` because C does not have garbage collection nor does it throw exceptions. We have also included C's `printf` function and used it to construct a simple template
-function for printing out an array. The main program uses the`fabs` function on each element of an array and the `pow` function to raise the power of each element to `2.5`:
+For example a Linux system will have the `math.h` library installed. Below is code for importing the `fabs` and `pow` functions from the C `math.h` library, we have added `@nogc` and `nothrow` because C does not have garbage collection nor does it throw exceptions. We have also included C's `printf` function from the `stdio.h` library and used it to construct a simple template function for printing out an array. The main program uses the `fabs` function on each element of an array and the `pow` function to raise the power of each element to `2.5`:
 
 ```
 /* Import C functions */
@@ -83,7 +82,7 @@ gcc -c multc.c
 ldc2 multd.d multc.o && ./multd
 ```
 
-The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details, see the [D langugae website](https://dlang.org/dll-linux.html).
+The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts) in the `multc.c` and `multd.d` files. For more details, see the [D language website](https://dlang.org/dll-linux.html).
 
 ## Calling D functions from C
 
@@ -107,7 +106,25 @@ float fmult(float x, float y)
 }
 ```
 
-As of writing this article, simply using `alias` will **not** work for exporting to C:
+On the C-side we create a script to reference and call the functions we have created in D.
+
+```
+#include <stdio.h>
+
+extern double dmult(double x, double y);
+extern float fmult(float x, float y);;
+
+int main()
+{
+    double xd = 3.0, yd = 4.0;
+    float xf = 3.0, yf = 4.0;
+    printf("output: %f\n", dmult(xd, yd));
+    printf("output: %f\n", fmult(xf, yf));
+    return 0;
+}
+```
+
+Simply using D's `alias` to declare different instances of functions will **not** work for exporting to C:
 
 ```
 /* ... */
@@ -163,20 +180,20 @@ REAL*8, INTENT(INOUT) :: y
 y = x*y
 END SUBROUTINE MULT
 ```
-The D code for calling Fortran is pretty much the same as calling C, however you will notice that the inputs are pointers and there is an underscore after the called function name:
+
+The D code for calling Fortran is pretty much the same as calling C, however Fortran's inputs must be referenced. The C-style notation is done with pointers for example the declaration would be `double mult_(double* x, double* y);`, however D provides `ref` notation which allows referenced inputs without requring pointers. You will also notice that the name function on the D side is modified with an underscore after the name:
 
 ```
 extern (C) nothrow @nogc
 {
-    double mult_(double* x, double* y);
-    int printf(scope const char* format, ...);
+    double mult_(ref double x, ref double y);
+    int printf(scope ref const(char) format, ...);
 }
 
 void main(){
     double x = 4, y = 5;
-    printf("%f\n", mult_(&x, &y));
+    printf("%f\n", mult_(x, y));
 }
-
 ```
 
 Compilation is similar to calling C from D:
@@ -185,16 +202,14 @@ Compilation is similar to calling C from D:
 gfortran -c multf.f90
 ldc2 -ofmult multd.d multf.o && ./mult
 ```
-Since the inputs are always passed by reference, you don't actually need to have an output, you can just modify one of the inputs. The above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/Fortran2D).
+
+The code for the above is located [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/Fortran2D).
 
 In terms of resource I found [this](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) useful for creating my Fortran example and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) useful for compilation hints.
 
 ## Calling D code from Fortran with `mixin` magic
 
-In my [previous](http://www.active-analytics.com/blog/a-quick-look-at-d/) blog article we touched on templates in D. In D not only
-are templates powerful but they are so much more straight forward than in C++. In this section we will use a string mixin
-to generate wrapper code from Fortran. In D a string mixin allows you to generate code from strings, they are easy to use and very
-powerful. The only real requirement is that the string needs to be known at compile time.
+In my [previous](http://www.active-analytics.com/blog/a-quick-look-at-d/) blog article we touched on templates in D. In D not only are templates powerful but they are so much more straight forward than in C++. In this section we will use a string mixin to generate wrapper code from Fortran. In D a string mixin allows you to generate code from strings, they are easy to use and very powerful. The only real requirement is that the string needs to be known at compile time.
 
 We would like to port some trigonometric function from Fortran to D, so as before we create subroutines for sine, cosine, tangent,
 and arctangent functions:
@@ -225,14 +240,13 @@ x = DATAN(x)
 END SUBROUTINE ATAN
 ```
 
-We can port these to D using `extern (C)` as before, however we don't really want to write out the same code over 
-and over again so here is a template to generate a string:
+We can port these to D using `extern (C)` as before, however we don't really want to write out the same code over and over again so here is a template to generate a string:
 
 
 ```
 template Declare(string fun)
 {
-    enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(ref double x);";
 }
 ```
 
@@ -241,13 +255,13 @@ Note that the `~` operator is for concatenating in D.
 Then this, when appropriately compiled:
 
 ```
-writeln(Declare!"cos");
+Declare!"cos";
 ```
 
 gives:
 
 ```
-double cos_(double* x);
+double cos_(ref double x);
 ```
 
 The string representation that we need to import the Fortran function. We can use the `mixin` function
@@ -270,14 +284,14 @@ function for this:
 ```
 template Wrap(string fun)
 {
-    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 ```
 
 Appropriately compiling with this:
 
 ```
-writeln(Wrap!"cos");
+Wrap!"cos";
 ```
 
 Gives
@@ -285,7 +299,7 @@ Gives
 ```
 double cos(double x)
 {
-    return cos_(&x);
+    return cos_(x);
 }
 ```
 
@@ -294,7 +308,7 @@ The complete declaration is:
 ```
 template Declare(string fun)
 {
-    enum string Declare = "double " ~ fun ~ "_(double* x);";
+    enum string Declare = "double " ~ fun ~ "_(ref double x);";
 }
 
 extern(C) nothrow @nogc
@@ -308,7 +322,7 @@ extern(C) nothrow @nogc
 
 template Wrap(string fun)
 {
-    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(&x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 
 
@@ -330,8 +344,8 @@ void main(){
 It doesn't take too much imagination to realise that you can use D code to generate the Fortran string, compile it and generate
 the relevant D wrapper code. Yes it is possible to do this in C/C++ using nasty macros or maybe template programming (I wouln't
 like to try), but hopefully you can see that this kind of thing is pretty straightforward in D, because it was designed with
-meta-progamming in mind. We can compile the Fortran and D code with make though D has it's own package manager called 
-[DUB](https://code.dlang.org/getting_started). The make code is below:
+meta-progamming in mind. We can compile the Fortran and D code with `make` though D has it's own package manager called 
+[DUB](https://code.dlang.org/getting_started). The `make` code is below:
 
 ```
 trig : trigd.d trigf.o
@@ -340,9 +354,9 @@ trigf.o : trigf.f90
     gfortran -c trigf.f90
 .PHONY : clean
 clean :
-    rm *.o
+    rm trig *.o
 ```
 
 Then run with `make`.
 
-The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/trig).
+The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/Trig).

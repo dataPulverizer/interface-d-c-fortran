@@ -1,6 +1,6 @@
 extern (C) nothrow @nogc
 {
-    double mult_(double* x, double* y);
+    double mult_(ref double x, ref double y);
     int printf(scope const char* format, ...);
 }
 
@@ -11,5 +11,5 @@ extern (C) nothrow @nogc
 
 void main(){
 	double x = 4, y = 5;
-	printf("%f\n", mult_(&x, &y));
+	printf("%f\n", mult_(x, y));
 }
