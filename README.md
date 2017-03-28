@@ -46,6 +46,8 @@ void main(){
 
 Admit it, this is even easier than [calling C functions from Julia](http://docs.julialang.org/en/stable/manual/calling-c-and-fortran-code/)! The script for the above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/pow_fabs.d).
 
+The use of `scope` in `printf` is to allow the argument type to be limited to the function call. C's `printf` function does not preserve the pointer internally.
+
 ### Calling static C libraries from D
 
 Here is my snazzy multiplication function written in C:
