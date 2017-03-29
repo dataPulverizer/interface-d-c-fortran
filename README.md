@@ -14,7 +14,7 @@ For example a Linux system will have the `math.h` library installed. Below is co
 /* Import C functions */
 extern (C) @nogc nothrow
 {
-    double pow(double x, double y) pure @safe;
+    double pow(double x, double y);
     double fabs(double x);
     int printf(scope const char* format, ...);
 }
