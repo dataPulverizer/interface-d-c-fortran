@@ -2,12 +2,16 @@
 
 ## Introduction
 
-This article describes how to interface D with C and Fortran. The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler. The D code in this article focuses on the `-betterC` style, this mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler is used to program with a ligth-weight subset of D and as the side-effect of facilitating an integration of D code to C that is as seamless as code from C to D.
+The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler.
+
+The D code in this article uses `-betterC` style. This mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler uses a ligth-weight subset of D and has the side-effect of facilitating an integration of D code to C that is as seamless as code from C to D.
 
 
 ## Calling C functions from D.
 
-The math.h is a standard library in C. [example1 code](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example1) below shows the D code for importing the `fabs` and `pow` functions from the C `math.h` library. The curly brace encapsulated `extern (C)` statement is used to declare the functions that we would like to import from C. The qualifiers `nogc` and `nothrow` are because the imported C functions are not garbage collected and C does not throw exceptions. In general the C language all too easily allows unsafe actions one of which is corrupting data. Some of the imported functions are modified with `@safe` which [ensures that they do not carry out a number of potentially unsafe actions][progD]. The `printf` function is not marked with `@safe` and instead the `scope` statement is used because the pointer is not preserved internally.
+The math.h is a standard library in C. [Example1 code](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example1) below shows the D code for importing the `fabs` and `pow` functions from the C `math.h` library. The `extern (C)` braces contains functions to be imported from C. The qualifiers `nogc` and `nothrow` are used because the imported C functions are not garbage collected and do not throw exceptions.
+
+In general the C language all too easily allows unsafe actions one of which is corrupting data. Some of the imported functions are modified with `@safe` which [ensures that they do not carry out a number of potentially unsafe actions][progD]. The `printf` function is not marked with `@safe` and instead the `scope` statement is used because the pointer is not preserved internally.
 
 ```
 /* example1.d */
@@ -122,7 +126,7 @@ int main()
 }
 ```
 
-There are many ways to compile these two scripts. Below the C code is first compiled to an object file, and the D code is compiled to a separate object file. Both object files are compiled together with the `gcc` compiler. Another option is to compile the C code to an object file and then use the D compiler to compile the C object file together with the `.d` script(s) to generate the executable.
+There are many ways to compile these two scripts. Below the C and D scripts are compiled into separate object files. Then both object files are compiled together with the `gcc` compiler. Another option is to compile the C code to an object file and then use the D compiler to compile the C object file together with the `.d` script(s) to generate the executable.
 
 ```
 $ gcc -O -c example2c.c
@@ -361,9 +365,6 @@ $ nm example5f.o
 ```
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example5).
-
-
-## References
 
 [quickD]: http://www.active-analytics.com/blog/a-quick-look-at-d/  "A quick look at D"
 [gcc]: https://gcc.gnu.org "GNU C Collection"
