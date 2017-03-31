@@ -4,9 +4,9 @@ extern double dmult(double x, double y);
 extern float fmult(float x, float y);;
 
 /* To Compile:
-** gcc -c multc.c
-** ldc2 -c multd.d
-** gcc -omult multd.o multc.o && ./mult
+** gcc -c example3c.c
+** ldc2 -c example3d.d
+** gcc -oexample3c example3d.o example3c.o && ./example3
 */
 
 int main()
