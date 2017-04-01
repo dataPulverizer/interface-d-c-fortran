@@ -306,7 +306,7 @@ template Wrap(string fun)
 	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 ```
-Then a template function that concatenates the outputs for many functions to generate one string for all the functions:
+Then a template function that recursively concatenates the outputs for many functions to generate one string for all the functions is given below.
 
 ```
 template GenFuns(string[] funs, alias wrapper)
@@ -318,7 +318,7 @@ template GenFuns(string[] funs, alias wrapper)
 }
 ```
 
-The complete code for this is given below:
+The complete D script for this is given below:
 
 ```
 /* example5d.d */
