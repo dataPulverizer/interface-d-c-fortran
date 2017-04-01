@@ -375,9 +375,6 @@ clean :
     rm example5 *.o
 ```
 
-Then run with `make`. The output of the Fortran object file is:
-
-
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example5).
 
