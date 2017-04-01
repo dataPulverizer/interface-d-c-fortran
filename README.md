@@ -4,15 +4,15 @@
 
 The C and Fortran programming languages have many popular tried and tested libraries. This article describes how to interface D code with C and Fortran. This includes outlining the ease in which functions in C standard libraries can be accessed from D, calling custom C functions from D, calling D functions from C, and calling Fortran subroutines from D. The article also covers how to use D's string mixins to generate code to avoid repetivive writing of wrapper functions.
 
-The D code in this article uses `-betterC` style. This mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler uses a ligth-weight subset of D and has the side-effect of facilitating an integration of D code to C that is as seamless as code from C to D.
+The D code in this article uses `-betterC` style. This mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler uses a ligth-weight subset of D and has the side-effect of facilitating an integration of D code to C that is as seamless as calling C code from D.
 
 The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler.
 
 ## Calling C functions from D.
 
-The math.h is a standard library in C. [Example1 code](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example1) below shows the D code for importing the `fabs` and `pow` functions from the C `math.h` library. The `extern (C)` braces contains functions to be imported from C. The qualifiers `nogc` and `nothrow` are used because the imported C functions are not garbage collected and do not throw exceptions.
+The math.h header describes a standard library in C. [Example1 code](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example1) below shows the D code for importing the `fabs` and `pow` functions from this library. The `extern (C)` braces contain functions to be imported from C. The qualifiers `nogc` and `nothrow` are used because the imported C functions are not garbage collected and do not throw exceptions.
 
-In general the C language all too easily allows unsafe actions one of which is corrupting data. Some of the imported functions are modified with `@safe` which [ensures that they do not carry out a number of potentially unsafe actions][progD]. The `printf` function is not marked with `@safe` and instead the `scope` statement is used because the pointer is not preserved internally.
+In general the C language all too easily allows unsafe actions one of which is corrupting data. Some of the imported functions are modified with `@safe` which [ensures that they do not carry out a number of potentially unsafe actions][progD]. The `printf` function is not marked with `@safe` but instead the `scope` statement is used because the pointer is not preserved internally.
 
 ```
 /* example1.d */
@@ -61,11 +61,13 @@ $ ldc2 -betterC -Oz -release -linkonce-templates -run example1.d
 1.000000 5.656854 15.588457 32.000000 55.901699 88.181631 
 ```
 
-The following are helpful descriptors of the code below:
+The following are helpful descriptors of the code above:
 
 * Full descriptions of the flags for the `ldc2` compiler are given with the `-help` flag, but the current flags are to reduce code size and bloat and create light-weight executables.
 
-* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters]. Purity of functions can be enforced in D using the `pure` qualifier to indicate that the function can not have side-effects which is the case with the `fabs` function.
+* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters].
+
+* Purity of functions can be enforced in D using the `pure` qualifier to indicate that the function can not have side-effects which is the case with the `fabs` function.
 
 * The `printArray` function is used multiple times and can be explicitly marked with [`pragma(inline, false)`][pragma].
 
@@ -110,7 +112,7 @@ double mult(double x, double y)
 }
 ```
 
-The D code to call this is as before:
+The D code to call this similar to our previous example:
 
 ```
 /* example2d.d */
@@ -145,7 +147,7 @@ $ nm example2d.o
                  U _printf
 ```
 
-The code is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example2).
+The code above is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/blob/master/code/scripts/example2).
 
 ## Calling D functions from C
 
@@ -206,13 +208,11 @@ $ nm example3d.o
 0000000000000010 T _fmult
 ```
 
-The above code is [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example3).
+The above code is located [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example3).
 
 ## Calling FORTRAN code from D
 
-Someone or a group of brave souls have created a high performance numeric library in FORTRAN and you would like to call this library from D. Calling Fortran from C is straightforward, but so is calling Fortran from D. Here is the Fortran version of my multiplication function:
-
-Fortran subroutines can be called directly from D in a very similar way to calling C from D. Below is a Fortran subroutine equivalent of the multiplication function:
+There are many numeric libraries written in Fortran that are still frequently used. It is thus important that they can be accessed from D. Fortran subroutines can be called directly from D in a very similar way to calling C from D. Below is a Fortran subroutine equivalent of the multiplication function:
 
 ```
 !example4f.f90
@@ -224,7 +224,7 @@ y = x*y
 END SUBROUTINE MULT
 ```
 
-The main difference between calling C code and Fortran code from D is that the inputs to the Fortran subroutines must be referenced and the name of the function is mangled in the Fortran object file to include an underscore afterwards. C-style notation can be used `double mult_(double* x, double* y);`, however D provides `ref` notation which allows referenced inputs without requring pointers.
+The main difference between calling C code and Fortran code from D is that the inputs to the Fortran subroutines must be referenced and the name of the function is mangled in the Fortran object file to include an underscore afterwards. C-style notation can be used `double mult_(double* x, double* y);`, however D provides `ref` notation which allows referenced inputs without requring pointers:
 
 ```
 /* example4d.d */
@@ -260,7 +260,7 @@ This [link](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf
 
 ### Calling Fortran code from D with mixins
 
-This section uses string mixins to generate D code to generate wrapper code for Fortran functions. The Fortran functions to port are subroutines for sine, cosine, tangent, and arctangent functions:
+Consider a situation where Fortran subroutines of the same signature but with different names need to be called in D. D can be used to generate the necessary declarative and wrapper code to avoid repetitive code. As an example consider porting the the following trigonometric subroutines from Fortran:
 
 ```
 !example5f.f90
@@ -289,21 +289,23 @@ x = DATAN(x)
 END SUBROUTINE ATAN
 ```
 
-D can be used to generate generate and interprete code strings at compile time to create all the functions we need. This example uses three templates to generate and manipulate strings. The first template is used to generate the declarations under `extern (C)`:
+The D code we need generates strings at compile time. These strings are compile time "interpreted" into functions. This is done using string mixins and templates to generate the compile time strings.
+
+The first template is used to generate the declarations under `extern (C)`:
 
 ```
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
+    enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
 }
 ```
 
-So `Declare!"sin"` will generate the string `double sin_(ref double x) pure;` which declares the `sin_` function. Next is the wrapper function to allow the user to use `sin(x)` rather than `sin_(x)`:
+`Declare!"sin"` will generate the string `double sin_(ref double x) pure;` which declares the ported Fortran `sin_` function. Next is the wrapper function to allow the user to use `sin(x)` rather than `sin_(x)`:
 
 ```
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 ```
 Then a template function that recursively concatenates the outputs for many functions to generate one string for all the functions is given below.
@@ -311,10 +313,10 @@ Then a template function that recursively concatenates the outputs for many func
 ```
 template GenFuns(string[] funs, alias wrapper)
 {
-	static if(funs.length > 0)
-	    enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
-	else
-		enum string GenFuns = "";
+    static if(funs.length > 0)
+        enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
+    else
+        enum string GenFuns = "";
 }
 ```
 
