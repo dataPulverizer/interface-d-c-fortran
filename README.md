@@ -326,20 +326,20 @@ The complete D script for this is given below:
 /* example5d.d */
 template Declare(string fun)
 {
-	enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
+    enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
 }
 
 template Wrap(string fun)
 {
-	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
+    enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 
 template GenFuns(string[] funs, alias wrapper)
 {
-	static if(funs.length > 0)
-	    enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
-	else
-		enum string GenFuns = "";
+    static if(funs.length > 0)
+        enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
+    else
+        enum string GenFuns = "";
 }
 
 /* Name of the functions to be ported */
@@ -347,21 +347,21 @@ immutable(string)[4] trigFuns = ["sin", "cos", "tan", "atan"];
 
 extern(C) nothrow @nogc
 {
-	int printf(scope const char* format, ...);
-	mixin(GenFuns!(trigFuns, Declare));
+    int printf(scope const char* format, ...);
+    mixin(GenFuns!(trigFuns, Declare));
 }
 
 mixin(GenFuns!(trigFuns, Wrap));
 
 extern (C):
 int main(){
-	double pii = 1;
+    double pii = 1;
     immutable double pi = 4*atan(pii);
     assert(sin(pi/2) == 1);
-	assert(cos(0) == 1);
-	assert(tan(0) == 0);
-	printf("Yay!\n");
-	return 0;
+    assert(cos(0) == 1);
+    assert(tan(0) == 0);
+    printf("Yay!\n");
+    return 0;
 }
 ```
 
@@ -379,6 +379,10 @@ clean :
 After running `make`, `./example5` will return the output `"Yay!"`
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example5).
+
+## Summary
+
+This article shows that D can interface with C and Fortran simply and efficiently. In the case of calling C functions from D, there is minimal effort required in that the function(s) need only be declared under `extern (C)`. In the case of calling D code from C, efforts need to be made to remove features in D that are incompatible with C using `-betterC` and other appropriate flags. Calling Fortran libraries from D is almost as strightforward as calling C from D, however Fortran mangles the exported names with a postfix underscore and arguments on the D code side must be referenced either using `ref` or with C-style pointers. D's mixins can be used to generate repetitive sections of code that can make it easier to port functions that have the same general call structure.
 
 [quickD]: http://www.active-analytics.com/blog/a-quick-look-at-d/  "A quick look at D"
 [gcc]: https://gcc.gnu.org "GNU C Collection"
