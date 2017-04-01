@@ -3,30 +3,37 @@ template Declare(string fun)
 	enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
 }
 
-extern(C) nothrow @nogc
-{
-	int printf(scope const char* format, ...);
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
-}
-
 template Wrap(string fun)
 {
 	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 
-mixin(Wrap!"sin");
-mixin(Wrap!"cos");
-mixin(Wrap!"tan");
-mixin(Wrap!"atan");
+template GenFuns(string[] funs, alias wrapper)
+{
+	static if(funs.length > 0)
+	    enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
+	else
+		enum string GenFuns = "";
+}
+
+/* Name of the functions to be ported */
+immutable(string)[4] trigFuns = ["sin", "cos", "tan", "atan"];
+
+extern(C) nothrow @nogc
+{
+	int printf(scope const char* format, ...);
+	mixin(GenFuns!(trigFuns, Declare));
+}
+
+mixin(GenFuns!(trigFuns, Wrap));
+
 
 /* To Compile:
 ** gfortran -c example5f.f90
 ** ldc2 -ofexample5 example5d.d example5f.o && ./example5
 */
 
+extern (C):
 int main(){
 	double pii = 1;
     immutable double pi = 4*atan(pii);
