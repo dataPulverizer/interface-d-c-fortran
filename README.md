@@ -374,7 +374,7 @@ example5f.o : example5f.f90
 clean :
     rm example5 *.o
 ```
-
+After running `make`, `./example5` will return the output `"Yay!"`
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example5).
 
