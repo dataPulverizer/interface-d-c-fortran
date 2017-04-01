@@ -289,8 +289,36 @@ x = DATAN(x)
 END SUBROUTINE ATAN
 ```
 
-On the D side the `Declare` template is used to generate a compile-time string of the appropriate declaration and the `Wrap` template generates a string:
+D can be used to generate generate and interprete code strings at compile time to create all the functions we need. This example uses three templates to generate and manipulate strings. The first template is used to generate the declarations under `extern (C)`:
 
+```
+template Declare(string fun)
+{
+	enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
+}
+```
+
+So `Declare!"sin"` will generate the string `double sin_(ref double x) pure;` which declares the `sin_` function. Next is the wrapper function to allow the user to use `sin(x)` rather than `sin_(x)`:
+
+```
+template Wrap(string fun)
+{
+	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
+}
+```
+Then a template function that concatenates the outputs for many functions to generate one string for all the functions:
+
+```
+template GenFuns(string[] funs, alias wrapper)
+{
+	static if(funs.length > 0)
+	    enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
+	else
+		enum string GenFuns = "";
+}
+```
+
+The complete code for this is given below:
 
 ```
 /* example5d.d */
@@ -299,30 +327,31 @@ template Declare(string fun)
 	enum string Declare = "double " ~ fun ~ "_(ref double x) pure;";
 }
 
-extern(C) nothrow @nogc
-{
-	int printf(scope const char* format, ...);
-	mixin(Declare!"sin");
-	mixin(Declare!"cos");
-	mixin(Declare!"tan");
-	mixin(Declare!"atan");
-}
-
 template Wrap(string fun)
 {
 	enum string Wrap = "double " ~ fun ~ "(double x)\n{\n    return " ~ fun ~ "_(x);\n}";
 }
 
-mixin(Wrap!"sin");
-mixin(Wrap!"cos");
-mixin(Wrap!"tan");
-mixin(Wrap!"atan");
+template GenFuns(string[] funs, alias wrapper)
+{
+	static if(funs.length > 0)
+	    enum string GenFuns = wrapper!(funs[0]) ~ GenFuns!(funs[1..$], wrapper);
+	else
+		enum string GenFuns = "";
+}
 
-/* To Compile:
-** gfortran -c example5f.f90
-** ldc2 -ofexample5 example5d.d example5f.o && ./example5
-*/
+/* Name of the functions to be ported */
+immutable(string)[4] trigFuns = ["sin", "cos", "tan", "atan"];
 
+extern(C) nothrow @nogc
+{
+	int printf(scope const char* format, ...);
+	mixin(GenFuns!(trigFuns, Declare));
+}
+
+mixin(GenFuns!(trigFuns, Wrap));
+
+extern (C):
 int main(){
 	double pii = 1;
     immutable double pi = 4*atan(pii);
@@ -334,11 +363,7 @@ int main(){
 }
 ```
 
-It doesn't take too much imagination to realise that you can use D code to generate the Fortran string, compile it and generate
-the relevant D wrapper code. Yes it is possible to do this in C/C++ using nasty macros or maybe template programming (I wouln't
-like to try), but hopefully you can see that this kind of thing is pretty straightforward in D, because it was designed with
-meta-progamming in mind. We can compile the Fortran and D code with `make` though D has it's own package manager called 
-[DUB](https://code.dlang.org/getting_started). The `make` code is below:
+The `make` code is below:
 
 ```
 example5 : example5d.d example5f.o
@@ -350,20 +375,9 @@ clean :
     rm example5 *.o
 ```
 
-Then run with `make`. The output of the object file is:
+Then run with `make`. The output of the Fortran object file is:
 
-```
-$ nm example5f.o
-                 U atan
-0000000000000090 T atan_
-                 U cos
-0000000000000030 T cos_
-                 U sin
-0000000000000000 T sin_
-                 U tan
-0000000000000060 T tan_
 
-```
 
 The code for this section is given [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example5).
 
