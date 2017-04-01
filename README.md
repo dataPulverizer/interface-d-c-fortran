@@ -2,10 +2,11 @@
 
 ## Introduction
 
-The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler.
+The C and Fortran programming languages have many popular tried and tested libraries. This article describes how to interface D code with C and Fortran. This includes outlining the ease in which functions in C standard libraries can be accessed from D, calling custom C functions from D, calling D functions from C, and calling Fortran subroutines from D. The article also covers how to use D's string mixins to generate code to avoid repetivive writing of wrapper functions.
 
 The D code in this article uses `-betterC` style. This mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler uses a ligth-weight subset of D and has the side-effect of facilitating an integration of D code to C that is as seamless as code from C to D.
 
+The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler.
 
 ## Calling C functions from D.
 
@@ -257,7 +258,7 @@ The code for the above is located [here](https://github.com/dataPulverizer/inter
 
 This [link](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) is a useful resource for Fortran and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) has useful for compilation hints.
 
-## Calling Fortran code from D
+### Calling Fortran code from D with mixins
 
 This section uses string mixins to generate D code to generate wrapper code for Fortran functions. The Fortran functions to port are subroutines for sine, cosine, tangent, and arctangent functions:
 
