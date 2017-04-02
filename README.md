@@ -382,7 +382,9 @@ The code for this section is given [here](https://github.com/dataPulverizer/inte
 
 ## Summary
 
-This article shows that D can interface with C and Fortran simply and efficiently. In the case of calling C functions from D, there is minimal effort required in that the function(s) need only be declared under `extern (C)`. In the case of calling D code from C, efforts need to be made to remove features in D that are incompatible with C using `-betterC` and other appropriate flags. Calling Fortran libraries from D is almost as strightforward as calling C from D, however Fortran mangles the exported names with a postfix underscore and arguments on the D code side must be referenced either using `ref` or with C-style pointers. D's mixins can be used to generate repetitive sections of code that can make it easier to port functions that have the same general call structure.
+This article shows that D can interface with C and Fortran simply and efficiently. In the case of calling C functions from D, there is minimal effort required in that the function(s) need only be declared under `extern (C)`. In the case of calling D code from C, efforts need to be made to remove features in D that are incompatible with C using `-betterC` and other appropriate flags.
+
+Calling Fortran libraries from D is almost as straightforward as calling C from D, however Fortran mangles the exported names with a postfix underscore and arguments on the D code side must be referenced either using `ref` or with C-style pointers. D's mixins can be used to generate repetitive sections of code that can make it easier to port functions that have the same general call structure.
 
 [quickD]: http://www.active-analytics.com/blog/a-quick-look-at-d/  "A quick look at D"
 [gcc]: https://gcc.gnu.org "GNU C Collection"
