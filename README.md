@@ -151,7 +151,7 @@ The code above is given [here](https://github.com/dataPulverizer/interface-d-c-f
 
 ## Calling D functions from C
 
-Calling C from D is a less seamless affair because D has features that are not supported in C, however as before, `-betterC` can be used to create compatitable object files. The D code below creates multiplication functions of different types using string mixins.
+Calling D from C is a less seamless affair because D has features that are not supported in C, however as before, `-betterC` can be used to create compatitable object files. The D code below creates multiplication functions of different types using string mixins. String mixins are a meta-programming technique that allows the user to generate code with strings at compile time.
 
 ```
 /* example3d.d */
@@ -160,14 +160,24 @@ extern (C) nothrow @nogc @safe pure:
 /* Template to generate string */
 template GenWrap(string type)
 {
-	enum string GenWrap = type ~ " " ~ type[0] ~ "mult(" ~ type ~ " x, " ~ type ~ " y)\n{\n\treturn x*y;\n}";
+    enum string GenWrap = type ~ " " ~ type[0] ~ "mult(" ~ type ~ " x, " ~ type ~ " y)\n{\n\treturn x*y;\n}";
 }
 
 mixin(GenWrap!"double");
 mixin(GenWrap!"float");
 ```
 
-On the C-side we create a script to reference and call the functions we have created in D.
+So `mixin(GenWrap!"double")` will expand to the code:
+
+```
+double dmult(double x, double y){
+    return x*y;
+}
+```
+
+Instead of using quotes some users prefer using D's `q{}` notation to represent strings, in this case, syntactic D code is held in the curly braces. We will be revising the use of mixins in the final example to generate Fortran code.
+
+C code then references and calls the functions created in D.
 
 
 ```
