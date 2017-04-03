@@ -220,7 +220,7 @@ $ nm example3d.o
 
 The above code is located [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example3).
 
-## Calling FORTRAN code from D
+## Calling Fortran code from D
 
 There are many numeric libraries written in Fortran that are still frequently used. It is thus important that they can be accessed from D. Fortran subroutines can be called directly from D in a very similar way to calling C from D. Below is a Fortran subroutine equivalent of the multiplication function:
 
