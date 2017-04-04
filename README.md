@@ -299,7 +299,7 @@ x = DATAN(x)
 END SUBROUTINE ATAN
 ```
 
-The D code we need generates strings at compile time. These strings are compile time "interpreted" into functions. This is done using string mixins and templates to generate the compile time strings.
+We can use templates to generate strings at compile-time. These strings are compile-time "interpreted" into code using string mixins and templates.
 
 The first template is used to generate the declarations under `extern (C)`:
 
