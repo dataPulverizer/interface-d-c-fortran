@@ -266,7 +266,7 @@ $ nm example4f.o
 
 The code for the above is located [here](https://github.com/dataPulverizer/interface-d-c-fortran/tree/master/code/scripts/example4).
 
-This [link](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) is a useful resource for Fortran and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) has useful for compilation hints.
+This [link](http://www.cs.mtu.edu/~shene/COURSES/cs201/NOTES/F90-Subprograms.pdf) is a useful resource for Fortran and [this](http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html) is useful for compilation hints.
 
 ### Calling Fortran code from D with mixins
 
