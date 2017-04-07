@@ -65,7 +65,7 @@ The following are helpful descriptors of the code above:
 
 * Full descriptions of the flags for the `ldc2` compiler are given with the `-help` flag, but the current flags are to reduce code size and bloat and create light-weight executables.
 
-* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters]. More details on template meta-programming can be found on [Philippe Sigaud's][https://github.com/PhilippeSigaud/D-templates-tutorial] tutorial. In addition, the [Mir][mir] and [Phobos][phobos] libraries offer `map` functions that iterate over arrays.
+* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters]. More details on template meta-programming can be found on [Philippe Sigaud's][templatesTutorial] tutorial. In addition, the [Mir][mir] and [Phobos][phobos] libraries offer `map` functions that iterate over arrays.
 
 * Purity of functions can be enforced in D using the `pure` qualifier to indicate that the function can not have side-effects which is the case with the `fabs` function.
 
@@ -408,3 +408,4 @@ Calling Fortran libraries from D is almost as straightforward as calling C from 
 [phobos]: https://dlang.org/phobos/index.html
 [mir]: https://github.com/libmir/mir-algorithm
 [fbind]: https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fC_005fBINDING.html
+[templatesTutorial]: https://github.com/PhilippeSigaud/D-templates-tutorial
