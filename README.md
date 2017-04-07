@@ -6,7 +6,7 @@ The C and Fortran programming languages have many popular libraries that are hea
 
 The D code in this article uses `-betterC` style. This mode of programming is increasingly popular in D circles focusing on D as a replacement for C in systems programming. The [`-betterC`][betterC] flag in the D compiler uses a ligth-weight subset of D and has the side-effect of facilitating an integration of D code to C that is as seamless as calling C code from D.
 
-The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] D's LLVM-based D compiler.
+The examples presented here are run on a Linux Ubuntu 64-bit 16.04 system and use the [gcc 5.4.0][gcc] C and Fortran compilers and [ldc2][ldc2] version 1.1.0 D's LLVM-based D compiler.
 
 ## Calling C functions from D.
 
@@ -65,7 +65,7 @@ The following are helpful descriptors of the code above:
 
 * Full descriptions of the flags for the `ldc2` compiler are given with the `-help` flag, but the current flags are to reduce code size and bloat and create light-weight executables.
 
-* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters].
+* If you are new to D the `apply` function is an example of using meta-programming techniques to pass a function using the template [alias parameters][aliasParameters]. More details on template meta-programming can be found on [Philippe Sigaud's][https://github.com/PhilippeSigaud/D-templates-tutorial] tutorial. In addition, the [Mir][mir] and [Phobos][phobos] libraries offer `map` functions that iterate over arrays.
 
 * Purity of functions can be enforced in D using the `pure` qualifier to indicate that the function can not have side-effects which is the case with the `fabs` function.
 
@@ -75,7 +75,7 @@ The following are helpful descriptors of the code above:
 
 * Garbage collection and execptions are not used so `extern(C)` declares common C `_main` instead of D `__Dmain`. This allows the final executable to be reduced in size by 72 times (from 617.5 KB to 8.5 KB).
 
-The program example does not require DRuntime to be linked.
+The [`nm` tool][nmtool] allows the object file symbols to be inpected. The output shows the ecenomy of the created symbols, it omits the creation of code that increases file size and perhaps efficiency of the executable.
 
 ```
 $ ldc2 -betterC -nogc -Oz -release -linkonce-templates -c example1.d
@@ -90,7 +90,7 @@ $ nm example1.o
                  U _putchar
 ```
 
-The [`nm` tool][nmtool] lists the symbols in the object file that can be described as:
+The symbols in the object file that can be described as:
 
  - `__D7article10printArrayFNbNiAdZv ` - `printArray`, D mangling.
  - `_main` - `main`, C mangling.
@@ -222,7 +222,7 @@ The above code is located [here](https://github.com/dataPulverizer/interface-d-c
 
 ## Calling Fortran code from D
 
-There are many numeric libraries written in Fortran that are still frequently used. It is thus important that they can be accessed from D. Fortran subroutines can be called directly from D in a very similar way to calling C from D. Below is a Fortran subroutine equivalent of the multiplication function:
+There are many numeric libraries written in Fortran that are still frequently used. It is thus important that they can be accessed from D. Fortran subroutines can be called directly from D in a very similar way to calling C from D. If you are working with Fortran and D, it is a good idea to explore [Fortran Iso C Binding][fbind] documentation. Below is a Fortran subroutine equivalent of the multiplication function:
 
 ```
 !example4f.f90
@@ -405,5 +405,6 @@ Calling Fortran libraries from D is almost as straightforward as calling C from 
 [share]: http://ddili.org/ders/d.en/concurrency_shared.html "Programming in D, Data Sharing Concurrency, by Ali Çehreli"
 [aliasParameters]: https://dlang.org/spec/template.html#aliasparameters "Template Alias Parameters"
 [nmtool]: https://en.wikipedia.org/wiki/Nm_(Unix) "nm Unix"
-
-
+[phobos]: https://dlang.org/phobos/index.html
+[mir]: https://github.com/libmir/mir-algorithm
+[fbind]: https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fC_005fBINDING.html
