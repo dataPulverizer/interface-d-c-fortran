@@ -75,7 +75,7 @@ The following are helpful descriptors of the code above:
 
 * Garbage collection and execptions are not used so `extern(C)` declares common C `_main` instead of D `__Dmain`. This allows the final executable to be reduced in size by 72 times (from 617.5 KB to 8.5 KB).
 
-The [`nm` tool][nmtool] allows the object file symbols to be inpected. The output shows the ecenomy of the created symbols, it omits the creation of code that increases file size and perhaps efficiency of the executable.
+The [`nm` tool][nmtool] allows the object file symbols to be inspected. The output shows the economy of the created symbols, it omits the creation of code that increases file size and perhaps efficiency of the executable.
 
 ```
 $ ldc2 -betterC -nogc -Oz -release -linkonce-templates -c example1.d
